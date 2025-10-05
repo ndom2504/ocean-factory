@@ -1,0 +1,652 @@
+'use client'
+
+import { useState } from 'react'
+
+interface MilestoneDetail {
+  id: number
+  numeroEtape: string
+  description: string
+  pourcentage: number
+  prixUnitaireFerme: number
+  prixFermeTotal: number
+  facture: boolean // Nouveau champ pour le statut facturé
+}
+
+interface ProjectBilling {
+  id: number
+  c228: number
+  c229: number
+  c230: number
+  c231: number
+}
+
+const initialMilestones: MilestoneDetail[] = [
+  { id: 1, numeroEtape: '1', description: 'PDR', pourcentage: 2, prixUnitaireFerme: 1759454.42, prixFermeTotal: 1759454.42, facture: false },
+  { id: 2, numeroEtape: '2', description: 'CDR', pourcentage: 4, prixUnitaireFerme: 3518908.84, prixFermeTotal: 3518908.84, facture: false },
+  { id: 3, numeroEtape: '3', description: 'Financial Security', pourcentage: 0, prixUnitaireFerme: 526625.00, prixFermeTotal: 526625.00, facture: false },
+  { id: 4, numeroEtape: '4a', description: 'PO one non-recurrent (steel)', pourcentage: 12, prixUnitaireFerme: 36125.13, prixFermeTotal: 144500.50, facture: false },
+  { id: 5, numeroEtape: '4.1b', description: 'Balance delivery to subcontractor (steel)', pourcentage: 0, prixUnitaireFerme: 2603056.50, prixFermeTotal: 2603056.50, facture: false },
+  { id: 6, numeroEtape: '4.2b', description: 'Balance delivery to subcontractor (steel)', pourcentage: 0, prixUnitaireFerme: 2603056.50, prixFermeTotal: 2603056.50, facture: false },
+  { id: 7, numeroEtape: '4.3b', description: 'Balance delivery to subcontractor (steel)', pourcentage: 0, prixUnitaireFerme: 2603056.50, prixFermeTotal: 2603056.50, facture: false },
+  { id: 8, numeroEtape: '4.4b', description: 'Balance delivery to subcontractor (steel)', pourcentage: 0, prixUnitaireFerme: 2603056.50, prixFermeTotal: 2603056.50, facture: false },
+  { id: 9, numeroEtape: '5a', description: 'PO one non-recurrent (propulsion)', pourcentage: 8, prixUnitaireFerme: 506009.87, prixFermeTotal: 2024039.48, facture: false },
+  { id: 10, numeroEtape: '5.1b', description: 'Propulsion Delivered', pourcentage: 0, prixUnitaireFerme: 1253444.55, prixFermeTotal: 1253444.55, facture: false },
+  { id: 11, numeroEtape: '5.2b', description: 'Propulsion Delivered', pourcentage: 0, prixUnitaireFerme: 1253444.55, prixFermeTotal: 1253444.55, facture: false },
+  { id: 12, numeroEtape: '5.3b', description: 'Propulsion Delivered', pourcentage: 0, prixUnitaireFerme: 1253444.55, prixFermeTotal: 1253444.55, facture: false },
+  { id: 13, numeroEtape: '5.4b', description: 'Propulsion Delivered', pourcentage: 0, prixUnitaireFerme: 1253444.55, prixFermeTotal: 1253444.55, facture: false },
+  { id: 14, numeroEtape: '6a', description: 'PO one non-recurrent (electrical)', pourcentage: 6, prixUnitaireFerme: 442084.25, prixFermeTotal: 1768337.00, facture: false },
+  { id: 15, numeroEtape: '6.1b', description: 'Electrical Delivered', pourcentage: 0, prixUnitaireFerme: 877506.57, prixFermeTotal: 877506.57, facture: false },
+  { id: 16, numeroEtape: '6.2b', description: 'Electrical Delivered', pourcentage: 0, prixUnitaireFerme: 877506.57, prixFermeTotal: 877506.57, facture: false },
+  { id: 17, numeroEtape: '6.3b', description: 'Electrical Delivered', pourcentage: 0, prixUnitaireFerme: 877506.57, prixFermeTotal: 877506.57, facture: false },
+  { id: 18, numeroEtape: '6.4b', description: 'Electrical Delivered', pourcentage: 0, prixUnitaireFerme: 877506.57, prixFermeTotal: 877506.57, facture: false },
+  { id: 19, numeroEtape: '7.1', description: 'Hull, deck, wheelhouse enclosed C228 NLT1', pourcentage: 10, prixUnitaireFerme: 2199318.03, prixFermeTotal: 2199318.03, facture: false },
+  { id: 20, numeroEtape: '7.2', description: 'Hull, deck, wheelhouse enclosed C229 NLT2', pourcentage: 0, prixUnitaireFerme: 2199318.03, prixFermeTotal: 2199318.03, facture: false },
+  { id: 21, numeroEtape: '7.3', description: 'Hull, deck, wheelhouse enclosed C230 NLT3', pourcentage: 10, prixUnitaireFerme: 8797272.12, prixFermeTotal: 8797272.12, facture: false },
+  { id: 22, numeroEtape: '7.4', description: 'Hull, deck, wheelhouse enclosed C231 NLT4', pourcentage: 0, prixUnitaireFerme: 8797272.12, prixFermeTotal: 8797272.12, facture: false },
+  { id: 23, numeroEtape: '7.3a', description: 'Deckhouse complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 329897.71, prixFermeTotal: 329897.71, facture: false },
+  { id: 22, numeroEtape: '7.3b', description: 'Hull enclosed and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 989693.11, prixFermeTotal: 989693.11, facture: false },
+  { id: 23, numeroEtape: '7.3c', description: 'Deckhouse and hull assembly complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 879727.21, prixFermeTotal: 879727.21, facture: false },
+  { id: 24, numeroEtape: '7.4a', description: 'Deckhouse complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 329897.71, prixFermeTotal: 329897.71, facture: false },
+  { id: 25, numeroEtape: '7.4b', description: 'Hull enclosed and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 989693.11, prixFermeTotal: 989693.11, facture: false },
+  { id: 26, numeroEtape: '7.4c', description: 'Deckhouse and hull assembly complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 879727.21, prixFermeTotal: 879727.21, facture: false },
+  { id: 27, numeroEtape: '8.1', description: 'Prime movers installed and accepted by Canada', pourcentage: 10, prixUnitaireFerme: 8797272.10, prixFermeTotal: 8797272.10, facture: false },
+  { id: 28, numeroEtape: '8.1a', description: 'Prime Movers Installed', pourcentage: 0, prixUnitaireFerme: 3518908.84, prixFermeTotal: 3518908.84, facture: false },
+  { id: 29, numeroEtape: '8.2a', description: 'Prime Movers Installed', pourcentage: 0, prixUnitaireFerme: 3518908.84, prixFermeTotal: 3518908.84, facture: false },
+  { id: 30, numeroEtape: '8.3a', description: 'Prime Movers Installed', pourcentage: 0, prixUnitaireFerme: 3518908.84, prixFermeTotal: 3518908.84, facture: false },
+  { id: 31, numeroEtape: '8.4a', description: 'Prime Movers Installed', pourcentage: 0, prixUnitaireFerme: 3518908.84, prixFermeTotal: 3518908.84, facture: false },
+  { id: 32, numeroEtape: '8.1b', description: 'Prime mover to Propulsor C228 NLT1', pourcentage: 10, prixUnitaireFerme: 1319590.81, prixFermeTotal: 1319590.81, facture: false },
+  { id: 33, numeroEtape: '8.2b1', description: 'All shaft components installed and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 527836.33, prixFermeTotal: 527836.33, facture: false },
+  { id: 34, numeroEtape: '8.3b1', description: 'All shaft components installed and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 527836.33, prixFermeTotal: 527836.33, facture: false },
+  { id: 35, numeroEtape: '8.4b1', description: 'All shaft components installed and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 527836.33, prixFermeTotal: 527836.33, facture: false },
+  { id: 36, numeroEtape: '8.2b2', description: 'Final alignment complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 791754.49, prixFermeTotal: 791754.49, facture: false },
+  { id: 37, numeroEtape: '8.3b2', description: 'Final alignment complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 791754.49, prixFermeTotal: 791754.49, facture: false },
+  { id: 38, numeroEtape: '8.4b2', description: 'Final alignment complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 791754.49, prixFermeTotal: 791754.49, facture: false },
+  { id: 39, numeroEtape: '9.1', description: 'Mise à la mer du navire, tests et essais terminés et acceptés par le Canada', pourcentage: 15, prixUnitaireFerme: 13195908.15, prixFermeTotal: 13195908.15, facture: false },
+  { id: 40, numeroEtape: '9.2', description: 'Mise à la mer du navire, tests et essais terminés et acceptés par le Canada', pourcentage: 0, prixUnitaireFerme: 13195908.15, prixFermeTotal: 13195908.15, facture: false },
+  { id: 41, numeroEtape: '9.3', description: 'Mise à la mer du navire, tests et essais terminés et acceptés par le Canada', pourcentage: 0, prixUnitaireFerme: 13195908.15, prixFermeTotal: 13195908.15, facture: false },
+  { id: 42, numeroEtape: '9.4', description: 'Mise à la mer du navire, tests et essais terminés et acceptés par le Canada', pourcentage: 0, prixUnitaireFerme: 13195908.15, prixFermeTotal: 13195908.15, facture: false },
+  { id: 43, numeroEtape: '9.1a', description: 'Test and Trials Program Complete and accepted by Canada (applicable for 4)', pourcentage: 0, prixUnitaireFerme: 659795.40, prixFermeTotal: 659795.40, facture: false },
+  { id: 44, numeroEtape: '9.2a', description: 'Test and Trials Program Complete and accepted by Canada (applicable for 4)', pourcentage: 0, prixUnitaireFerme: 659795.40, prixFermeTotal: 659795.40, facture: false },
+  { id: 45, numeroEtape: '9.3a', description: 'Test and Trials Program Complete and accepted by Canada (applicable for 4)', pourcentage: 0, prixUnitaireFerme: 659795.40, prixFermeTotal: 659795.40, facture: false },
+  { id: 46, numeroEtape: '9.4a', description: 'Test and Trials Program Complete and accepted by Canada (applicable for 4)', pourcentage: 0, prixUnitaireFerme: 659795.40, prixFermeTotal: 659795.40, facture: false },
+  { id: 47, numeroEtape: '9.1b', description: 'Pre-Requisites Complete and accepted by Canada (Commissioning, Flushing, ITP)', pourcentage: 0, prixUnitaireFerme: 1319590.80, prixFermeTotal: 1319590.80, facture: false },
+  { id: 48, numeroEtape: '9.2b', description: 'Pre-Requisites Complete and accepted by Canada (Commissioning, Flushing, ITP)', pourcentage: 0, prixUnitaireFerme: 1319590.80, prixFermeTotal: 1319590.80, facture: false },
+  { id: 49, numeroEtape: '9.3b', description: 'Pre-Requisites Complete and accepted by Canada (Commissioning, Flushing, ITP)', pourcentage: 0, prixUnitaireFerme: 1319590.80, prixFermeTotal: 1319590.80, facture: false },
+  { id: 50, numeroEtape: '9.4b', description: 'Pre-Requisites Complete and accepted by Canada (Commissioning, Flushing, ITP)', pourcentage: 0, prixUnitaireFerme: 1319590.80, prixFermeTotal: 1319590.80, facture: false },
+  { id: 51, numeroEtape: '9.1c', description: 'Trials Conduct Complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 5938158.68, prixFermeTotal: 5938158.68, facture: false },
+  { id: 52, numeroEtape: '9.2c', description: 'Trials Conduct Complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 5938158.68, prixFermeTotal: 5938158.68, facture: false },
+  { id: 53, numeroEtape: '9.3c', description: 'Trials Conduct Complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 5938158.68, prixFermeTotal: 5938158.68, facture: false },
+  { id: 54, numeroEtape: '9.4c', description: 'Trials Conduct Complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 5938158.68, prixFermeTotal: 5938158.68, facture: false },
+  { id: 55, numeroEtape: '9.1d', description: 'Trials Reports Submitted and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2639181.64, prixFermeTotal: 2639181.64, facture: false },
+  { id: 56, numeroEtape: '9.2d', description: 'Trials Reports Submitted and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2639181.64, prixFermeTotal: 2639181.64, facture: false },
+  { id: 57, numeroEtape: '9.3d', description: 'Trials Reports Submitted and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2639181.64, prixFermeTotal: 2639181.64, facture: false },
+  { id: 58, numeroEtape: '9.4d', description: 'Trials Reports Submitted and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2639181.64, prixFermeTotal: 2639181.64, facture: false },
+  { id: 59, numeroEtape: '9.1e', description: 'Trials Complete and Accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2639181.64, prixFermeTotal: 2639181.64, facture: false },
+  { id: 60, numeroEtape: '9.2e', description: 'Trials Complete and Accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2639181.64, prixFermeTotal: 2639181.64, facture: false },
+  { id: 61, numeroEtape: '9.3e', description: 'Trials Complete and Accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2639181.64, prixFermeTotal: 2639181.64, facture: false },
+  { id: 62, numeroEtape: '9.4e', description: 'Trials Complete and Accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2639181.64, prixFermeTotal: 2639181.64, facture: false },
+  { id: 63, numeroEtape: '10.1', description: 'Achèvement de l\'acceptation provisoire et acceptation par le Canada', pourcentage: 5, prixUnitaireFerme: 4398636.05, prixFermeTotal: 4398636.05, facture: false },
+  { id: 64, numeroEtape: '10.2', description: 'Achèvement de l\'acceptation provisoire et acceptation par le Canada', pourcentage: 0, prixUnitaireFerme: 4398636.05, prixFermeTotal: 4398636.05, facture: false },
+  { id: 65, numeroEtape: '10.3', description: 'Achèvement de l\'acceptation provisoire et acceptation par le Canada', pourcentage: 0, prixUnitaireFerme: 4398636.05, prixFermeTotal: 4398636.05, facture: false },
+  { id: 66, numeroEtape: '10.4', description: 'Achèvement de l\'acceptation provisoire et acceptation par le Canada', pourcentage: 0, prixUnitaireFerme: 4398636.05, prixFermeTotal: 4398636.05, facture: false },
+  { id: 67, numeroEtape: '10.1a', description: 'CVM Template and accepted by Canada (applicable 4 tugs)', pourcentage: 0, prixUnitaireFerme: 439863.60, prixFermeTotal: 439863.60, facture: false },
+  { id: 68, numeroEtape: '10.2a', description: 'CVM Template and accepted by Canada (applicable 4 tugs)', pourcentage: 0, prixUnitaireFerme: 439863.60, prixFermeTotal: 439863.60, facture: false },
+  { id: 69, numeroEtape: '10.3a', description: 'CVM Template and accepted by Canada (applicable 4 tugs)', pourcentage: 0, prixUnitaireFerme: 439863.60, prixFermeTotal: 439863.60, facture: false },
+  { id: 70, numeroEtape: '10.4a', description: 'CVM Template and accepted by Canada (applicable 4 tugs)', pourcentage: 0, prixUnitaireFerme: 439863.60, prixFermeTotal: 439863.60, facture: false },
+  { id: 71, numeroEtape: '10.3b', description: 'Provisional Acceptance complete and accepted by Canada', pourcentage: 5, prixUnitaireFerme: 4398636.05, prixFermeTotal: 4398636.05, facture: false },
+  { id: 72, numeroEtape: '10.4b', description: 'Provisional Acceptance complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 4398636.05, prixFermeTotal: 4398636.05, facture: false },
+  { id: 73, numeroEtape: '10.1b1', description: 'Provisional Acceptance complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 494846.56, prixFermeTotal: 494846.56, facture: false },
+  { id: 74, numeroEtape: '10.1b2', description: 'Provisional Acceptance complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 494846.56, prixFermeTotal: 494846.56, facture: false },
+  { id: 75, numeroEtape: '10.2b1', description: 'Provisional Acceptance complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 494846.56, prixFermeTotal: 494846.56, facture: false },
+  { id: 76, numeroEtape: '10.2b2', description: 'Provisional Acceptance complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 494846.56, prixFermeTotal: 494846.56, facture: false },
+  { id: 77, numeroEtape: '11.1', description: 'Livraison et acceptation des navires à leur EFC respective', pourcentage: 14, prixUnitaireFerme: 3298977.04, prixFermeTotal: 13195908.15, facture: false },
+  { id: 78, numeroEtape: '11.2', description: 'Livraison et acceptation des navires à leur EFC respective', pourcentage: 0, prixUnitaireFerme: 3298977.04, prixFermeTotal: 13195908.15, facture: false },
+  { id: 79, numeroEtape: '11.3', description: 'Livraison et acceptation des navires à leur EFC respective', pourcentage: 0, prixUnitaireFerme: 3298977.04, prixFermeTotal: 13195908.15, facture: false },
+  { id: 80, numeroEtape: '11.4', description: 'Livraison et acceptation des navires à leur EFC respective', pourcentage: 0, prixUnitaireFerme: 3298977.04, prixFermeTotal: 13195908.15, facture: false },
+  { id: 81, numeroEtape: '12a', description: 'PO: Deux (2) ans de pièces de rechange opérationnelles', pourcentage: 2, prixUnitaireFerme: 87990.00, prixFermeTotal: 351960.00, facture: false },
+  { id: 82, numeroEtape: '12.1b', description: 'Deux (2) ans de pièces de rechange opérationnelles', pourcentage: 0, prixUnitaireFerme: 351873.61, prixFermeTotal: 1407494.42, facture: false },
+  { id: 83, numeroEtape: '12.2b', description: 'Deux (2) ans de pièces de rechange opérationnelles', pourcentage: 0, prixUnitaireFerme: 351873.61, prixFermeTotal: 1407494.42, facture: false },
+  { id: 84, numeroEtape: '12.3b', description: 'Deux (2) ans de pièces de rechange opérationnelles', pourcentage: 0, prixUnitaireFerme: 351873.61, prixFermeTotal: 1407494.42, facture: false },
+  { id: 85, numeroEtape: '12.4b', description: 'Deux (2) ans de pièces de rechange opérationnelles', pourcentage: 0, prixUnitaireFerme: 351873.61, prixFermeTotal: 1407494.42, facture: false },
+  { id: 86, numeroEtape: '12.1b1', description: 'RSPL complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 281498.92, prixFermeTotal: 281498.92, facture: false },
+  { id: 87, numeroEtape: '12.2b1', description: 'RSPL complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 281498.92, prixFermeTotal: 281498.92, facture: false },
+  { id: 88, numeroEtape: '12.3b1', description: 'RSPL complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 281498.92, prixFermeTotal: 281498.92, facture: false },
+  { id: 89, numeroEtape: '12.4b1', description: 'RSPL complete and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 281498.92, prixFermeTotal: 281498.92, facture: false },
+  { id: 90, numeroEtape: '12.1b2', description: 'Spares verified by Canada at shipyard before shipping', pourcentage: 0, prixUnitaireFerme: 562997.76, prixFermeTotal: 562997.76, facture: false },
+  { id: 91, numeroEtape: '12.2b2', description: 'Spares verified by Canada at shipyard before shipping', pourcentage: 0, prixUnitaireFerme: 562997.76, prixFermeTotal: 562997.76, facture: false },
+  { id: 92, numeroEtape: '12.3b2', description: 'Spares verified by Canada at shipyard before shipping', pourcentage: 0, prixUnitaireFerme: 562997.76, prixFermeTotal: 562997.76, facture: false },
+  { id: 93, numeroEtape: '12.4b2', description: 'Spares verified by Canada at shipyard before shipping', pourcentage: 0, prixUnitaireFerme: 562997.76, prixFermeTotal: 562997.76, facture: false },
+  { id: 94, numeroEtape: '12.1b3', description: 'Spares delivered and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 562997.76, prixFermeTotal: 562997.76, facture: false },
+  { id: 95, numeroEtape: '12.2b3', description: 'Spares delivered and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 562997.76, prixFermeTotal: 562997.76, facture: false },
+  { id: 96, numeroEtape: '12.3b3', description: 'Spares delivered and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 562997.76, prixFermeTotal: 562997.76, facture: false },
+  { id: 97, numeroEtape: '12.4b3', description: 'Spares delivered and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 562997.76, prixFermeTotal: 562997.76, facture: false },
+  { id: 98, numeroEtape: '13.1', description: 'Livraison de tous les éléments du dossier des documents techniques et acceptation par le Canada', pourcentage: 3, prixUnitaireFerme: 2639181.63, prixFermeTotal: 2639181.63, facture: false },
+  { id: 99, numeroEtape: '13.2', description: 'Livraison de tous les éléments du dossier des documents techniques et acceptation par le Canada', pourcentage: 0, prixUnitaireFerme: 2639181.63, prixFermeTotal: 2639181.63, facture: false },
+  { id: 100, numeroEtape: '13.3', description: 'Livraison de tous les éléments du dossier des documents techniques et acceptation par le Canada', pourcentage: 0, prixUnitaireFerme: 2639181.63, prixFermeTotal: 2639181.63, facture: false },
+  { id: 101, numeroEtape: '13.4', description: 'Livraison de tous les éléments du dossier des documents techniques et acceptation par le Canada', pourcentage: 0, prixUnitaireFerme: 2639181.63, prixFermeTotal: 2639181.63, facture: false },
+  { id: 102, numeroEtape: '13.1a', description: 'All copies of ILS documents (Draft) received and accepted by Canada (MEL, MAR, TDP, Hazardous Material Database)', pourcentage: 0, prixUnitaireFerme: 263918.16, prixFermeTotal: 263918.16, facture: false },
+  { id: 103, numeroEtape: '13.2a', description: 'All copies of ILS documents (Draft) received and accepted by Canada (MEL, MAR, TDP, Hazardous Material Database)', pourcentage: 0, prixUnitaireFerme: 263918.16, prixFermeTotal: 263918.16, facture: false },
+  { id: 104, numeroEtape: '13.3a', description: 'All copies of ILS documents (Draft) received and accepted by Canada (MEL, MAR, TDP, Hazardous Material Database)', pourcentage: 0, prixUnitaireFerme: 263918.16, prixFermeTotal: 263918.16, facture: false },
+  { id: 105, numeroEtape: '13.4a', description: 'All copies of ILS documents (Draft) received and accepted by Canada (MEL, MAR, TDP, Hazardous Material Database)', pourcentage: 0, prixUnitaireFerme: 263918.16, prixFermeTotal: 263918.16, facture: false },
+  { id: 106, numeroEtape: '13.1b', description: 'All Technical Data Package elements delivered and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2375263.48, prixFermeTotal: 2375263.48, facture: false },
+  { id: 107, numeroEtape: '13.2b', description: 'All Technical Data Package elements delivered and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2375263.48, prixFermeTotal: 2375263.48, facture: false },
+  { id: 108, numeroEtape: '13.3b', description: 'All Technical Data Package elements delivered and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2375263.48, prixFermeTotal: 2375263.48, facture: false },
+  { id: 109, numeroEtape: '13.4b', description: 'All Technical Data Package elements delivered and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 2375263.48, prixFermeTotal: 2375263.48, facture: false },
+  { id: 110, numeroEtape: '14a', description: 'PO: Achèvement de la formation et acceptation par le Canada', pourcentage: 3, prixUnitaireFerme: 13716.00, prixFermeTotal: 13716.00, facture: false },
+  { id: 111, numeroEtape: '14.1b', description: 'Achèvement de la formation et acceptation par le Canada', pourcentage: 3, prixUnitaireFerme: 656366.41, prixFermeTotal: 2625465.63, facture: false },
+  { id: 112, numeroEtape: '14.2b', description: 'Achèvement de la formation et acceptation par le Canada', pourcentage: 0, prixUnitaireFerme: 656366.41, prixFermeTotal: 2625465.63, facture: false },
+  { id: 113, numeroEtape: '14.3b', description: 'Achèvement de la formation et acceptation par le Canada', pourcentage: 0, prixUnitaireFerme: 656366.41, prixFermeTotal: 2625465.63, facture: false },
+  { id: 114, numeroEtape: '14.4b', description: 'Achèvement de la formation et acceptation par le Canada', pourcentage: 0, prixUnitaireFerme: 656366.41, prixFermeTotal: 2625465.63, facture: false },
+  { id: 115, numeroEtape: '14.1b1', description: 'Training Plan including course manuals complete and accepted by Canada (applicable for 4 tugs)', pourcentage: 0, prixUnitaireFerme: 787639.68, prixFermeTotal: 787639.68, facture: false },
+  { id: 116, numeroEtape: '14.2b1', description: 'Training Plan including course manuals complete and accepted by Canada (applicable for 4 tugs)', pourcentage: 0, prixUnitaireFerme: 787639.68, prixFermeTotal: 787639.68, facture: false },
+  { id: 117, numeroEtape: '14.3b1', description: 'Training Plan including course manuals complete and accepted by Canada (applicable for 4 tugs)', pourcentage: 0, prixUnitaireFerme: 787639.68, prixFermeTotal: 787639.68, facture: false },
+  { id: 118, numeroEtape: '14.4b1', description: 'Training Plan including course manuals complete and accepted by Canada (applicable for 4 tugs)', pourcentage: 0, prixUnitaireFerme: 787639.68, prixFermeTotal: 787639.68, facture: false },
+  { id: 119, numeroEtape: '14.1b2', description: 'Training completed and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 1837825.96, prixFermeTotal: 1837825.96, facture: false },
+  { id: 120, numeroEtape: '14.2b2', description: 'Training completed and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 1837825.96, prixFermeTotal: 1837825.96, facture: false },
+  { id: 121, numeroEtape: '14.3b2', description: 'Training completed and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 1837825.96, prixFermeTotal: 1837825.96, facture: false },
+  { id: 122, numeroEtape: '14.4b2', description: 'Training completed and accepted by Canada', pourcentage: 0, prixUnitaireFerme: 1837825.96, prixFermeTotal: 1837825.96, facture: false },
+  { id: 123, numeroEtape: '15.1', description: 'Warranty', pourcentage: 4, prixUnitaireFerme: 879727.19, prixFermeTotal: 3518908.76, facture: false },
+  { id: 124, numeroEtape: '15.2', description: 'Warranty', pourcentage: 0, prixUnitaireFerme: 879727.19, prixFermeTotal: 3518908.76, facture: false },
+  { id: 125, numeroEtape: '15.3', description: 'Warranty', pourcentage: 0, prixUnitaireFerme: 879727.19, prixFermeTotal: 3518908.76, facture: false },
+  { id: 126, numeroEtape: '15.4', description: 'Warranty', pourcentage: 0, prixUnitaireFerme: 879727.19, prixFermeTotal: 3518908.76, facture: false },
+  { id: 127, numeroEtape: '16(a)', description: 'APC', pourcentage: 0.5, prixUnitaireFerme: 439863.61, prixFermeTotal: 439863.61, facture: false },
+  { id: 128, numeroEtape: '16(b)', description: 'APC', pourcentage: 0.5, prixUnitaireFerme: 439863.61, prixFermeTotal: 439863.61, facture: false },
+  { id: 129, numeroEtape: '17', description: 'Economic Price Adjustment', pourcentage: 0, prixUnitaireFerme: 4000000.00, prixFermeTotal: 4000000.00, facture: false },
+  { id: 130, numeroEtape: '18', description: 'EPA adjustment NLT 3 & 4', pourcentage: 0, prixUnitaireFerme: 4000000.00, prixFermeTotal: 4000000.00, facture: false },
+  { id: 131, numeroEtape: '19.a', description: 'Auxiliary Milestone - Delivery and Acceptance NLT 1', pourcentage: 0, prixUnitaireFerme: 3000000.00, prixFermeTotal: 3000000.00, facture: false },
+  { id: 132, numeroEtape: '19.b', description: 'Auxiliary Milestone - Delivery and Acceptance NLT 2', pourcentage: 0, prixUnitaireFerme: 3000000.00, prixFermeTotal: 3000000.00, facture: false },
+  { id: 133, numeroEtape: '19.c', description: 'Auxiliary Milestone - Completion Milestone 7 and all sub-milestones NLT 3', pourcentage: 0, prixUnitaireFerme: 1400000.00, prixFermeTotal: 1400000.00, facture: false },
+  { id: 134, numeroEtape: '19.d', description: 'Auxiliary Milestone - Completion Milestone 7 and all sub-milestones NLT 4', pourcentage: 0, prixUnitaireFerme: 1400000.00, prixFermeTotal: 1400000.00, facture: false },
+  { id: 135, numeroEtape: '19.e', description: 'Auxiliary Milestone - Delivery and Acceptance NLT 3', pourcentage: 0, prixUnitaireFerme: 1600000.00, prixFermeTotal: 1600000.00, facture: false },
+  { id: 136, numeroEtape: '19.f', description: 'Auxiliary Milestone - Delivery and Acceptance NLT 4', pourcentage: 0, prixUnitaireFerme: 1600000.00, prixFermeTotal: 1600000.00, facture: false }
+]
+
+const initialBillingBeforeTax: ProjectBilling[] = Array.from({ length: 138 }, (_, i) => ({
+  id: i + 1,
+  c228: 0,
+  c229: 0,
+  c230: 0,
+  c231: 0,
+}))
+
+const initialBillingWithTax: ProjectBilling[] = Array.from({ length: 138 }, (_, i) => ({
+  id: i + 1,
+  c228: 0,
+  c229: 0,
+  c230: 0,
+  c231: 0,
+}))
+
+export default function MilestonesDetails() {
+  const [milestones, setMilestones] = useState<MilestoneDetail[]>(initialMilestones)
+  const [billingBeforeTax, setBillingBeforeTax] = useState<ProjectBilling[]>(initialBillingBeforeTax)
+  const [billingWithTax, setBillingWithTax] = useState<ProjectBilling[]>(initialBillingWithTax)
+  const [searchTerm, setSearchTerm] = useState<string>('')
+
+  // Filtrage des milestones basé sur la recherche
+  const filteredMilestones = milestones.filter(milestone =>
+    milestone.numeroEtape.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    milestone.description.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  // Fonctions utilitaires
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-CA', {
+      style: 'currency',
+      currency: 'CAD',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Calculs des totaux du contrat
+  const totalContractBeforeTax = filteredMilestones.reduce((sum, milestone) => sum + milestone.prixFermeTotal, 0);
+  const taxRate = 0.09975; // 9.975% selon le document fourni
+  const totalTax = totalContractBeforeTax * taxRate;
+  const totalContractWithTax = totalContractBeforeTax + totalTax;
+  const totalPercentage = filteredMilestones.reduce((sum, milestone) => sum + milestone.pourcentage, 0);
+  
+  // Calculs des éléments facturés
+  const facturedMilestones = filteredMilestones.filter(m => m.facture);
+  const totalFacturedBeforeTax = facturedMilestones.reduce((sum, milestone) => sum + milestone.prixFermeTotal, 0);
+  const totalFacturedWithTax = totalFacturedBeforeTax * (1 + taxRate);
+
+  const updateMilestone = (id: number, field: keyof MilestoneDetail, value: string | number | boolean) => {
+    setMilestones(prev => prev.map(item => 
+      item.id === id ? { ...item, [field]: value } : item
+    ))
+  }
+
+  const updateBillingBeforeTax = (id: number, project: keyof Omit<ProjectBilling, 'id'>, value: number) => {
+    setBillingBeforeTax(prev => prev.map(item => 
+      item.id === id ? { ...item, [project]: value } : item
+    ))
+  }
+
+  const updateBillingWithTax = (id: number, project: keyof Omit<ProjectBilling, 'id'>, value: number) => {
+    setBillingWithTax(prev => prev.map(item => 
+      item.id === id ? { ...item, [project]: value } : item
+    ))
+  }
+
+  const deleteRow = (id: number) => {
+    setMilestones(prev => prev.filter(item => item.id !== id))
+    setBillingBeforeTax(prev => prev.filter(item => item.id !== id))
+    setBillingWithTax(prev => prev.filter(item => item.id !== id))
+  }
+
+  const addNewMilestone = () => {
+    const newId = Math.max(...milestones.map(m => m.id)) + 1
+    const newMilestone: MilestoneDetail = {
+      id: newId,
+      numeroEtape: '',
+      description: '',
+      pourcentage: 0,
+      prixUnitaireFerme: 0,
+      prixFermeTotal: 0,
+      facture: false,
+    }
+    
+    const newBillingBefore: ProjectBilling = { id: newId, c228: 0, c229: 0, c230: 0, c231: 0 }
+    const newBillingWith: ProjectBilling = { id: newId, c228: 0, c229: 0, c230: 0, c231: 0 }
+    
+    setMilestones(prev => [...prev, newMilestone])
+    setBillingBeforeTax(prev => [...prev, newBillingBefore])
+    setBillingWithTax(prev => [...prev, newBillingWith])
+  }
+
+  return (
+    <div className="w-full space-y-6">
+      {/* En-tête et recherche */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-ocean-blue">📋 Détails des Milestones</h2>
+          <p className="text-gray-600 mt-1">Gestion complète des étapes du projet Ocean Factory</p>
+          {/* Légende */}
+          <div className="flex items-center gap-4 mt-2 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-purple-100 border border-purple-200 rounded"></div>
+              <span className="text-gray-600">Facturé</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-white border border-gray-300 rounded"></div>
+              <span className="text-gray-600">Non facturé</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <input
+            type="text"
+            placeholder="🔍 Rechercher milestone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ocean-blue focus:border-transparent"
+          />
+          <button
+            onClick={addNewMilestone}
+            className="px-4 py-2 bg-ocean-blue text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          >
+            ➕ Ajouter
+          </button>
+        </div>
+      </div>
+
+      {/* Tableau des détails des milestones avec résumé à droite */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+        {/* Tableau principal - 3/4 de la largeur sur très grand écran */}
+        <div className="xl:col-span-3">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="px-6 py-4 bg-ocean-blue text-white">
+              <h3 className="text-lg font-semibold">📊 Détails des Milestones ({filteredMilestones.length})</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                      N° Étape
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Description
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                      %
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      Prix unitaire ($)
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      Prix total ($)
+                    </th>
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                      Facturé
+                    </th>
+                    <th className="px-1 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                      
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredMilestones.map((milestone) => (
+                    <tr key={milestone.id} className={`hover:bg-gray-50 ${milestone.facture ? 'bg-purple-100 hover:bg-purple-200' : ''}`}>
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        <input
+                          type="text"
+                          value={milestone.numeroEtape}
+                          onChange={(e) => updateMilestone(milestone.id, 'numeroEtape', e.target.value)}
+                          className="w-full px-1 py-1 text-sm border border-gray-300 rounded focus:ring-ocean-blue focus:border-ocean-blue"
+                          aria-label={`Numéro d'étape ${milestone.numeroEtape}`}
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="text"
+                          value={milestone.description}
+                          onChange={(e) => updateMilestone(milestone.id, 'description', e.target.value)}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-ocean-blue focus:border-ocean-blue"
+                          placeholder="Description du milestone"
+                          aria-label="Description du milestone"
+                        />
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        <input
+                          type="number"
+                          value={milestone.pourcentage}
+                          onChange={(e) => updateMilestone(milestone.id, 'pourcentage', parseFloat(e.target.value) || 0)}
+                          className="w-full px-1 py-1 text-sm border border-gray-300 rounded focus:ring-ocean-blue focus:border-ocean-blue"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          aria-label="Pourcentage"
+                        />
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        <input
+                          type="number"
+                          value={milestone.prixUnitaireFerme}
+                          onChange={(e) => updateMilestone(milestone.id, 'prixUnitaireFerme', parseFloat(e.target.value) || 0)}
+                          className="w-full px-1 py-1 text-sm border border-gray-300 rounded focus:ring-ocean-blue focus:border-ocean-blue"
+                          min="0"
+                          step="0.01"
+                          aria-label="Prix unitaire ferme"
+                        />
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        <input
+                          type="number"
+                          value={milestone.prixFermeTotal}
+                          onChange={(e) => updateMilestone(milestone.id, 'prixFermeTotal', parseFloat(e.target.value) || 0)}
+                          className="w-full px-1 py-1 text-sm border border-gray-300 rounded focus:ring-ocean-blue focus:border-ocean-blue"
+                          min="0"
+                          step="0.01"
+                          aria-label="Prix ferme total"
+                        />
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <input
+                          type="checkbox"
+                          checked={milestone.facture}
+                          onChange={(e) => updateMilestone(milestone.id, 'facture', e.target.checked)}
+                          className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                          aria-label="Marquer comme facturé"
+                        />
+                      </td>
+                      <td className="px-1 py-2 text-center">
+                        <button
+                          onClick={() => deleteRow(milestone.id)}
+                          className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
+                          title="Supprimer cette ligne"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Résumé Financier - 1/4 de la largeur */}
+        <div className="xl:col-span-1">
+          <div className="bg-gradient-to-br from-ocean-blue to-blue-700 rounded-lg shadow-lg p-6 text-white sticky top-6">
+            <h3 className="text-lg font-bold mb-4 flex items-center">
+              📊 Résumé Milestones
+            </h3>
+            <div className="space-y-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">Total Contrat (Avant Taxes)</p>
+                <p className="text-xl font-bold">{formatCurrency(totalContractBeforeTax)}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">Taxes (9.975%)</p>
+                <p className="text-xl font-bold">{formatCurrency(totalTax)}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">Total Avec Taxes</p>
+                <p className="text-2xl font-bold">{formatCurrency(totalContractWithTax)}</p>
+              </div>
+              <div className="border-t border-white/20 pt-4">
+                <div className="bg-purple-500/30 backdrop-blur-sm rounded-lg p-4 mb-4">
+                  <p className="text-sm mb-2 text-purple-100">💰 Montants Facturés</p>
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Avant taxes:</span>
+                      <span className="font-bold">{formatCurrency(totalFacturedBeforeTax)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Avec taxes:</span>
+                      <span className="font-bold">{formatCurrency(totalFacturedWithTax)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-white/70">Milestones</p>
+                    <p className="font-bold">{filteredMilestones.length}</p>
+                  </div>
+                  <div>
+                    <p className="text-white/70">Facturés</p>
+                    <p className="font-bold text-purple-200">{facturedMilestones.length}</p>
+                  </div>
+                  <div>
+                    <p className="text-white/70">% Total</p>
+                    <p className="font-bold">{totalPercentage.toFixed(1)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-white/70">% Facturé</p>
+                    <p className="font-bold text-purple-200">{facturedMilestones.reduce((sum, m) => sum + m.pourcentage, 0).toFixed(1)}%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tableau Facturation Avant Taxes avec résumé à droite */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+        {/* Tableau facturation - 3/4 de la largeur */}
+        <div className="xl:col-span-3">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="px-6 py-4 bg-orange-600 text-white">
+              <h3 className="text-lg font-semibold">💰 Facturation par Projet (Avant Taxes)</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                      N° Étape
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      C228 NLT1
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      C229 NLT2
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      C230 NLT3
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      C231 NLT4
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredMilestones.map((milestone) => {
+                    const montantParProjet = milestone.prixFermeTotal / 4;
+                    return (
+                      <tr key={milestone.id} className={`hover:bg-gray-50 ${milestone.facture ? 'bg-purple-100 hover:bg-purple-200' : ''}`}>
+                        <td className="px-2 py-2 whitespace-nowrap font-medium text-sm">
+                          {milestone.numeroEtape}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                          {formatCurrency(montantParProjet)}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                          {formatCurrency(montantParProjet)}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                          {formatCurrency(montantParProjet)}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                          {formatCurrency(montantParProjet)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Résumé Facturation - 1/4 de la largeur */}
+        <div className="xl:col-span-1">
+          <div className="bg-gradient-to-br from-orange-600 to-orange-800 rounded-lg shadow-lg p-6 text-white sticky top-6">
+            <h3 className="text-lg font-bold mb-4 flex items-center">
+              💰 Résumé par Projet
+            </h3>
+            <div className="space-y-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">C228 NLT1 (Avant Taxes)</p>
+                <p className="text-xl font-bold">{formatCurrency(filteredMilestones.reduce((sum, m) => sum + (m.prixFermeTotal / 4), 0))}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">C229 NLT2 (Avant Taxes)</p>
+                <p className="text-xl font-bold">{formatCurrency(filteredMilestones.reduce((sum, m) => sum + (m.prixFermeTotal / 4), 0))}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">C230 NLT3 (Avant Taxes)</p>
+                <p className="text-xl font-bold">{formatCurrency(filteredMilestones.reduce((sum, m) => sum + (m.prixFermeTotal / 4), 0))}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">C231 NLT4 (Avant Taxes)</p>
+                <p className="text-xl font-bold">{formatCurrency(filteredMilestones.reduce((sum, m) => sum + (m.prixFermeTotal / 4), 0))}</p>
+              </div>
+              <div className="border-t border-white/20 pt-4">
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                  <p className="text-sm mb-1">Total Projets (Avant Taxes)</p>
+                  <p className="text-2xl font-bold">{formatCurrency(totalContractBeforeTax)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tableau Facturation Avec Taxes avec résumé à droite */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+        {/* Tableau facturation avec taxes - 3/4 de la largeur */}
+        <div className="xl:col-span-3">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="px-6 py-4 bg-green-600 text-white">
+              <h3 className="text-lg font-semibold">💰 Facturation par Projet (Avec Taxes)</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                      N° Étape
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      C228 NLT1
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      C229 NLT2
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      C230 NLT3
+                    </th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      C231 NLT4
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredMilestones.map((milestone) => {
+                    const montantParProjetAvecTaxes = (milestone.prixFermeTotal * (1 + taxRate)) / 4;
+                    return (
+                      <tr key={milestone.id} className={`hover:bg-gray-50 ${milestone.facture ? 'bg-purple-100 hover:bg-purple-200' : ''}`}>
+                        <td className="px-2 py-2 whitespace-nowrap font-medium text-sm">
+                          {milestone.numeroEtape}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                          {formatCurrency(montantParProjetAvecTaxes)}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                          {formatCurrency(montantParProjetAvecTaxes)}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                          {formatCurrency(montantParProjetAvecTaxes)}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                          {formatCurrency(montantParProjetAvecTaxes)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Résumé Facturation Avec Taxes - 1/4 de la largeur */}
+        <div className="xl:col-span-1">
+          <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-lg shadow-lg p-6 text-white sticky top-6">
+            <h3 className="text-lg font-bold mb-4 flex items-center">
+              💰 Résumé avec Taxes
+            </h3>
+            <div className="space-y-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">C228 NLT1 (Avec Taxes)</p>
+                <p className="text-xl font-bold">{formatCurrency(filteredMilestones.reduce((sum, m) => sum + ((m.prixFermeTotal * (1 + taxRate)) / 4), 0))}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">C229 NLT2 (Avec Taxes)</p>
+                <p className="text-xl font-bold">{formatCurrency(filteredMilestones.reduce((sum, m) => sum + ((m.prixFermeTotal * (1 + taxRate)) / 4), 0))}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">C230 NLT3 (Avec Taxes)</p>
+                <p className="text-xl font-bold">{formatCurrency(filteredMilestones.reduce((sum, m) => sum + ((m.prixFermeTotal * (1 + taxRate)) / 4), 0))}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-sm mb-1">C231 NLT4 (Avec Taxes)</p>
+                <p className="text-xl font-bold">{formatCurrency(filteredMilestones.reduce((sum, m) => sum + ((m.prixFermeTotal * (1 + taxRate)) / 4), 0))}</p>
+              </div>
+              <div className="border-t border-white/20 pt-4">
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                  <p className="text-sm mb-1">Total Projets (Avec Taxes)</p>
+                  <p className="text-2xl font-bold">{formatCurrency(totalContractWithTax)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

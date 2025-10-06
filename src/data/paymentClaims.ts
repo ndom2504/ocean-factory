@@ -178,8 +178,8 @@ export const paymentClaimItems: PaymentClaimItem[] = [
   { id: 132, description: 'Claim 124 C-229 Milestone 9.2b Pre-Requisites Complete and accepted by Canada (Commissioning, Flushing, ITP)', claimNumber: 124, claimAmount: 329897.70, taxRate5: true, taxRate15: false, taxAmount: 16494.89, totalToDate: 346392.59, group: 'M9_PREREQ', groupLabel: 'Milestone 9.x Pre-Requisites' },
   // Claim 125 Cancelled Deckhouse (kept for traceability)
   { id: 133, description: 'Cancelled Claim 125 C-230 Milestone 7.3a Deckhouse Complete and accepted by Canada', claimNumber: 125, claimAmount: 0, taxRate5: false, taxRate15: true, taxAmount: 0, totalToDate: 0, group: 'M7_3A_DECKHOUSE', groupLabel: 'Milestone 7.3a Deckhouse' },
-  // Claim 126 Deckhouse Complete
-  { id: 134, description: 'Claim 126 Milestone 7.3a Deckhouse Complete and accepted by Canada', claimNumber: 126, claimAmount: 329897.71, taxRate5: false, taxRate15: true, taxAmount: 49484.66, totalToDate: 379382.37, group: 'M7_3A_DECKHOUSE', groupLabel: 'Milestone 7.3a Deckhouse' },
+  // Claim 126 Deckhouse Complete (14% tax rate)
+  { id: 134, description: 'Claim 126 Milestone 7.3a Deckhouse Complete and accepted by Canada', claimNumber: 126, claimAmount: 329897.71, taxRate5: false, taxRate15: false, taxAmount: 49484.66, totalToDate: 379382.37, group: 'M7_3A_DECKHOUSE', groupLabel: 'Milestone 7.3a Deckhouse' },
   // Claim 127 Transportation to Esquimalt (two vessels DCR-22)
   { id: 135, description: 'Claim 127 C-228 DCR-22 Transportation to Esquimalt', claimNumber: 127, claimAmount: 534977.77, taxRate5: true, taxRate15: false, taxAmount: 26748.89, totalToDate: 561726.66, group: 'DCR22', groupLabel: 'DCR-22 Transportation' },
   { id: 136, description: 'Claim 127 C-229 DCR-22 Transportation to Esquimalt', claimNumber: 127, claimAmount: 534977.77, taxRate5: true, taxRate15: false, taxAmount: 26748.89, totalToDate: 561726.66, group: 'DCR22', groupLabel: 'DCR-22 Transportation' },
@@ -193,12 +193,25 @@ export const paymentClaimItems: PaymentClaimItem[] = [
   { id: 140, description: 'Cancelled Claim 131 C-230 Milestone 7.3b Hull enclosed and accepted by Canada', claimNumber: 131, claimAmount: 0, taxRate5: false, taxRate15: true, taxAmount: 0, totalToDate: 0, group: 'M7_3B', groupLabel: 'Milestone 7.3b Hull enclosed' },
   // Claim 132 Fender modification Signed and Accepted (amount unknown -> placeholder 0, adjust later)
   { id: 141, description: 'Claim 132 DCR 037 - 0-00230 - Fender modification Signed and Accepted by Canada (AMOUNT TBD)', claimNumber: 132, claimAmount: 0, taxRate5: false, taxRate15: true, taxAmount: 0, totalToDate: 0, group: 'DCR037', groupLabel: 'DCR-037 Fender modification' },
-  // Claim 133 Prime Movers Installed and Accepted
-  { id: 142, description: 'Claim 133 C-230 Milestone 8.3a Prime Movers Installed and Accepted by Canada', claimNumber: 133, claimAmount: 879727.21, taxRate5: false, taxRate15: true, taxAmount: 123161.81, totalToDate: 1002889.02, group: 'M8_3A', groupLabel: 'Milestone 8.3a Prime Movers' },
-  // Claim 134 Hull enclosed and accepted by Canada
-  { id: 143, description: 'Claim 134 C-230 Milestone 7.3b Hull enclosed and accepted by Canada', claimNumber: 134, claimAmount: 989693.11, taxRate5: false, taxRate15: true, taxAmount: 138557.04, totalToDate: 1128250.15, group: 'M7_3B', groupLabel: 'Milestone 7.3b Hull enclosed' },
+  // Claim 133 Prime Movers Installed and Accepted (14% tax rate)
+  { id: 142, description: 'Claim 133 C-230 Milestone 8.3a Prime Movers Installed and Accepted by Canada', claimNumber: 133, claimAmount: 879727.21, taxRate5: false, taxRate15: false, taxAmount: 123161.81, totalToDate: 1002889.02, group: 'M8_3A', groupLabel: 'Milestone 8.3a Prime Movers' },
+  // Claim 134 Hull enclosed and accepted by Canada (14% tax rate)
+  { id: 143, description: 'Claim 134 C-230 Milestone 7.3b Hull enclosed and accepted by Canada', claimNumber: 134, claimAmount: 989693.11, taxRate5: false, taxRate15: false, taxAmount: 138557.04, totalToDate: 1128250.15, group: 'M7_3B', groupLabel: 'Milestone 7.3b Hull enclosed' },
   // Claim 135 Fender modification Signed and Accepted (specific amount)
   { id: 144, description: 'Claim 135 DCR 037 - 0-00230 - Fender modification Signed and Accepted by Canada', claimNumber: 135, claimAmount: 7903.00, taxRate5: false, taxRate15: true, taxAmount: 1106.42, totalToDate: 9009.42, group: 'DCR037', groupLabel: 'DCR-037 Fender modification' },
-  // Claim 136 Deckhouse and hull assembly complete and accepted
-  { id: 145, description: 'Claim 136 C-230 Milestone 7.3c Deckhouse and hull assembly complete and accepted by Canada', claimNumber: 136, claimAmount: 879727.21, taxRate5: false, taxRate15: true, taxAmount: 123161.81, totalToDate: 1002889.02, group: 'M7_3C', groupLabel: 'Milestone 7.3c Deckhouse & Hull assembly' }
+  // Claim 136 Deckhouse and hull assembly complete and accepted (14% tax rate)
+  { id: 145, description: 'Claim 136 C-230 Milestone 7.3c Deckhouse and hull assembly complete and accepted by Canada', claimNumber: 136, claimAmount: 879727.21, taxRate5: false, taxRate15: false, taxAmount: 123161.81, totalToDate: 1002889.02, group: 'M7_3C', groupLabel: 'Milestone 7.3c Deckhouse & Hull assembly' },
+  
+  // === Final screenshot additions (claims 137-140) ===
+  // Claim 137 Milestone 7 for NLT 3 completed and accepted by Canada (14% tax rate)
+  { id: 146, description: 'Claim 137 C-230 19.c Milestone 7 for NLT 3 completed and accepted by Canada', claimNumber: 137, claimAmount: 1400000.00, taxRate5: false, taxRate15: false, taxAmount: 196000.00, totalToDate: 1596000.00, group: 'M7_NLT3', groupLabel: 'Milestone 7 for NLT 3' },
+  
+  // Claim 138 Milestone 11.1 Delivery and Final Acceptance (Holdback Reference claim 120) (5% tax rate)
+  { id: 147, description: 'Claim 138 C-228 Milestone 11.1 Delivery and Final Acceptance of vessels complete at respective CFR bases Holdback (Reference claim 120)', claimNumber: 138, claimAmount: 103996.12, taxRate5: true, taxRate15: false, taxAmount: 5199.81, totalToDate: 109195.93, group: 'M11_1_HOLDBACK', groupLabel: 'Milestone 11.1 Holdback' },
+  
+  // Claim 138 Milestone 11.2 Delivery and Final Acceptance (Holdback Reference claim 120) (5% tax rate)
+  { id: 148, description: 'Claim 138 C-229 Milestone 11.2 Delivery and Final Acceptance of vessels complete at respective CFR bases Holdback (Reference claim 120)', claimNumber: 138, claimAmount: 150976.13, taxRate5: true, taxRate15: false, taxAmount: 7548.81, totalToDate: 158524.94, group: 'M11_2_HOLDBACK', groupLabel: 'Milestone 11.2 Holdback' },
+  
+  // Claim 139 DCR 001 Exterior Watertight Power Receptacles (14% tax rate)
+  { id: 149, description: 'Claim 139 C-230-DCR 001 Exterior Watertight Power Receptacles', claimNumber: 139, claimAmount: 16041.25, taxRate5: false, taxRate15: false, taxAmount: 2245.78, totalToDate: 18287.03, group: 'DCR001_230', groupLabel: 'DCR-001 C-230 Watertight Power Receptacles' }
 ]

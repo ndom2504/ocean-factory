@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/contexts/AppContext'
+import { PriceSyncProvider } from '@/contexts/PriceSyncContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,9 +20,11 @@ export default function RootLayout({
     <html lang="fr">
       <body className={inter.className}>
         <AppProvider>
-          <div className="min-h-screen bg-gray-50">
-            {children}
-          </div>
+          <PriceSyncProvider>
+            <div className="min-h-screen bg-gray-50">
+              {children}
+            </div>
+          </PriceSyncProvider>
         </AppProvider>
       </body>
     </html>

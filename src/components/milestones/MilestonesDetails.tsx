@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { usePriceSync } from '@/contexts/PriceSyncContext'
+import { PriceSynchronizer, getMilestoneProjectId, formatCAD, calculateTTC, TAX_RATES, calculateProjectBeforeTaxAmount } from '@/utils/priceSync'
 
 // Interface pour les détails des milestones
 interface MilestoneDetail {
@@ -165,34 +167,44 @@ const initialMilestones: MilestoneDetail[] = [
 // Fonction pour calculer la facturation avant taxes automatiquement
 const calculateBillingBeforeTax = (milestones: MilestoneDetail[]): ProjectBilling[] => {
   return milestones.map(milestone => {
-    const quarterAmount = milestone.prixFermeTotal / 4
+    const projectId = getMilestoneProjectId(milestone.id)
+    
+    // Calcul du montant avant taxe selon les nouvelles règles
+    const beforeTaxAmount = calculateProjectBeforeTaxAmount({
+      prixFermeTotal: milestone.prixFermeTotal,
+      prixUnitaireFerme: milestone.prixUnitaireFerme
+    })
+    
     return {
       id: milestone.id,
-      c228: quarterAmount,
-      c229: quarterAmount,
-      c230: quarterAmount,
-      c231: quarterAmount
+      c228: projectId === 'c228' ? beforeTaxAmount : 0,
+      c229: projectId === 'c229' ? beforeTaxAmount : 0,
+      c230: projectId === 'c230' ? beforeTaxAmount : 0,
+      c231: projectId === 'c231' ? beforeTaxAmount : 0
     }
   })
 }
 
-// Fonction pour calculer la facturation après taxes (TPS 5% + TVQ 9.975% = 14.975%)
+// Fonction pour calculer la facturation après taxes avec les nouveaux taux
 const calculateBillingAfterTax = (milestones: MilestoneDetail[]): ProjectBilling[] => {
-  const TPS_RATE = 0.05 // 5%
-  const TVQ_RATE = 0.09975 // 9.975%
-  const TOTAL_TAX_RATE = TPS_RATE + TVQ_RATE // 14.975%
-
   return milestones.map(milestone => {
-    const beforeTaxAmount = milestone.prixFermeTotal
-    const totalWithTax = beforeTaxAmount * (1 + TOTAL_TAX_RATE)
-    const quarterAmount = totalWithTax / 4
+    const projectId = getMilestoneProjectId(milestone.id)
+    const taxRate = TAX_RATES[projectId as keyof typeof TAX_RATES] || TAX_RATES.default
+    
+    // Calcul du montant avant taxe selon les nouvelles règles
+    const beforeTaxAmount = calculateProjectBeforeTaxAmount({
+      prixFermeTotal: milestone.prixFermeTotal,
+      prixUnitaireFerme: milestone.prixUnitaireFerme
+    })
+    
+    const totalWithTax = calculateTTC(beforeTaxAmount, taxRate)
     
     return {
       id: milestone.id,
-      c228: quarterAmount,
-      c229: quarterAmount,
-      c230: quarterAmount,
-      c231: quarterAmount
+      c228: projectId === 'c228' ? totalWithTax : 0,
+      c229: projectId === 'c229' ? totalWithTax : 0,
+      c230: projectId === 'c230' ? totalWithTax : 0,
+      c231: projectId === 'c231' ? totalWithTax : 0
     }
   })
 }
@@ -203,21 +215,88 @@ const initialBillingBeforeTax: ProjectBilling[] = calculateBillingBeforeTax(init
 const initialBillingWithTax: ProjectBilling[] = calculateBillingAfterTax(initialMilestones)
 
 export default function MilestonesDetails() {
+  const { updateMilestonePrice, toggleMilestoneFacture, calculateTTC } = usePriceSync()
   const [milestones, setMilestones] = useState<MilestoneDetail[]>(initialMilestones)
   const [billingBeforeTax, setBillingBeforeTax] = useState<ProjectBilling[]>(initialBillingBeforeTax)
   const [billingWithTax, setBillingWithTax] = useState<ProjectBilling[]>(initialBillingWithTax)
   const [activeView, setActiveView] = useState<'details' | 'billing-before' | 'billing-with'>('details')
 
+  // État pour la surveillance des synchronisations
+  const [syncHistory, setSyncHistory] = useState<Array<{
+    id: string
+    timestamp: string
+    action: string
+    details: string
+  }>>([])
+
+  // Fonction pour ajouter un événement de synchronisation
+  const addSyncEvent = (action: string, details: string) => {
+    setSyncHistory(prev => [{
+      id: Date.now().toString(),
+      timestamp: new Date().toLocaleTimeString('fr-FR'),
+      action,
+      details
+    }, ...prev.slice(0, 4)]) // Garder seulement les 5 derniers événements
+  }
+
   const updateMilestone = (id: number, field: keyof MilestoneDetail, value: string | number | boolean) => {
     setMilestones(prev => {
-      const updatedMilestones = prev.map(milestone => 
-        milestone.id === id ? { ...milestone, [field]: value } : milestone
-      )
+      const updatedMilestones = prev.map(milestone => {
+        if (milestone.id === id) {
+          const updatedMilestone = { ...milestone, [field]: value }
+          
+          // Synchronisation automatique des prix
+          if (field === 'prixUnitaireFerme' || field === 'prixFermeTotal') {
+            const projectId = getMilestoneProjectId(milestone.id)
+            const newPrice = typeof value === 'number' ? value : parseFloat(value as string) || 0
+            
+            // Synchroniser avec le système de prix
+            PriceSynchronizer.syncPriceChange(
+              milestone.id,
+              newPrice,
+              'milestone',
+              projectId,
+              {
+                updateRegisters: (projId, itemType, itemId, montantHT, montantTTC) => {
+                  const message = `Registre ${projId.toUpperCase()}: ${formatCAD(montantHT)} → ${formatCAD(montantTTC)}`
+                  addSyncEvent('📊 Registre', message)
+                },
+                updateForms: (projId, totalHT, totalTTC) => {
+                  const message = `Formulaires ${projId.toUpperCase()}: ${formatCAD(totalHT)} → ${formatCAD(totalTTC)}`
+                  addSyncEvent('📝 Formulaires', message)
+                },
+                onSync: (syncInfo) => {
+                  const message = `Milestone ${syncInfo.itemId} - ${syncInfo.projectId.toUpperCase()}: ${formatCAD(syncInfo.montantHT)} (Taux: ${(syncInfo.taxRate * 100).toFixed(2)}%)`
+                  addSyncEvent('🔄 Synchronisation', message)
+                }
+              }
+            )
+            
+            // Mettre à jour aussi le prix ferme total si c'est le prix unitaire qui change
+            if (field === 'prixUnitaireFerme') {
+              updatedMilestone.prixFermeTotal = newPrice
+            }
+          }
+          
+          // Synchronisation automatique de la facturation
+          if (field === 'facture') {
+            const projectId = getMilestoneProjectId(milestone.id)
+            toggleMilestoneFacture(projectId, milestone.id)
+            console.log(`💰 Facturation ${value ? 'activée' : 'désactivée'} pour milestone ${milestone.id} (${projectId.toUpperCase()})`)
+          }
+          
+          return updatedMilestone
+        }
+        return milestone
+      })
       
-      // Si le prix ferme total change, mettre à jour automatiquement les facturations
-      if (field === 'prixFermeTotal') {
-        setBillingBeforeTax(calculateBillingBeforeTax(updatedMilestones))
-        setBillingWithTax(calculateBillingAfterTax(updatedMilestones))
+      // Si le prix ferme total change, mettre à jour automatiquement les facturations avec les nouveaux taux
+      if (field === 'prixFermeTotal' || field === 'prixUnitaireFerme') {
+        // Recalculer tous les tableaux de facturation avec les nouvelles données
+        setTimeout(() => {
+          setBillingBeforeTax(calculateBillingBeforeTax(updatedMilestones))
+          setBillingWithTax(calculateBillingAfterTax(updatedMilestones))
+        }, 0)
       }
       
       return updatedMilestones
@@ -234,6 +313,83 @@ export default function MilestonesDetails() {
     setter(prev => prev.map(billing => 
       billing.id === id ? { ...billing, [field]: value } : billing
     ))
+
+    // Synchronisation inverse : mettre à jour le milestone correspondant
+    // Si on modifie un montant dans les registres, cela doit se refléter dans le projet
+    const projectFields = ['c228', 'c229', 'c230', 'c231'] as const
+    if (projectFields.includes(field as any)) {
+      const projectId = field.toLowerCase() // c228, c229, etc.
+      const taxRate = TAX_RATES[projectId as keyof typeof TAX_RATES] || TAX_RATES.default
+      
+      // Calculer le nouveau prix du milestone basé sur le montant modifié
+      let newMilestonePrixFermeTotal: number
+      
+      if (type === 'before') {
+        // Si on modifie le HT, on utilise directement cette valeur
+        // car montant avant taxe par projet = prix total details milestone / 4
+        newMilestonePrixFermeTotal = value * 4
+      } else {
+        // Si on modifie le TTC, il faut d'abord calculer le HT selon les nouveaux taux
+        const montantHT = value / (1 + taxRate) // Calcul inverse du TTC
+        newMilestonePrixFermeTotal = montantHT * 4
+      }
+
+      // Mettre à jour SEULEMENT le milestone qui correspond vraiment au projet modifié
+      setMilestones(prevMilestones => 
+        prevMilestones.map(milestone => {
+          // Vérifier si ce milestone correspond au projet modifié
+          const milestoneProjectId = getMilestoneProjectId(milestone.id)
+          const fieldProjectId = field.toLowerCase()
+          
+          if (milestone.id === id && milestoneProjectId === fieldProjectId) {
+            const updatedMilestone = { 
+              ...milestone, 
+              prixUnitaireFerme: milestone.prixFermeTotal === 0 ? newMilestonePrixFermeTotal : milestone.prixUnitaireFerme,
+              prixFermeTotal: newMilestonePrixFermeTotal
+            }
+            
+            // Ajouter un événement de synchronisation avec info des nouveaux taux
+            const taxInfo = projectId === 'c228' || projectId === 'c229' ? '(×1.05)' : '(×1.15)'
+            const message = `${field.toUpperCase()}: ${formatCAD(value)} ${taxInfo} → Milestone ${id} (${milestoneProjectId.toUpperCase()}): ${formatCAD(newMilestonePrixFermeTotal)}`
+            addSyncEvent('🔄 Sync Inverse', message)
+            
+            return updatedMilestone
+          }
+          return milestone
+        })
+      )
+    }
+  }
+
+  // Fonction pour ajouter un nouveau milestone
+  const addMilestone = () => {
+    const newId = Math.max(...milestones.map(m => m.id)) + 1
+    const newMilestone: MilestoneDetail = {
+      id: newId,
+      numeroEtape: '',
+      description: '',
+      pourcentage: 0,
+      prixUnitaireFerme: 0,
+      prixFermeTotal: 0,
+      facture: false
+    }
+    
+    const updatedMilestones = [...milestones, newMilestone]
+    setMilestones(updatedMilestones)
+    
+    // Ajouter les entrées de facturation correspondantes
+    setBillingBeforeTax(calculateBillingBeforeTax(updatedMilestones))
+    setBillingWithTax(calculateBillingAfterTax(updatedMilestones))
+  }
+
+  // Fonction pour supprimer un milestone
+  const deleteMilestone = (id: number) => {
+    const updatedMilestones = milestones.filter(m => m.id !== id)
+    setMilestones(updatedMilestones)
+    
+    // Supprimer les entrées de facturation correspondantes
+    setBillingBeforeTax(calculateBillingBeforeTax(updatedMilestones))
+    setBillingWithTax(calculateBillingAfterTax(updatedMilestones))
   }
 
   const formatCurrency = (amount: number) => {
@@ -293,6 +449,22 @@ export default function MilestonesDetails() {
         </div>
       </div>
 
+      {/* Panneau de surveillance des synchronisations */}
+      {syncHistory.length > 0 && (
+        <div className="bg-white rounded-lg shadow border-l-4 border-purple-500 p-4">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">🔄 Synchronisations récentes</h3>
+          <div className="space-y-1">
+            {syncHistory.map(event => (
+              <div key={event.id} className="flex items-center text-xs text-gray-600">
+                <span className="text-gray-400 mr-2">{event.timestamp}</span>
+                <span className="font-medium mr-2">{event.action}</span>
+                <span className="text-gray-700">{event.details}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Vue détaillée des milestones */}
       {activeView === 'details' && (
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
@@ -310,6 +482,7 @@ export default function MilestonesDetails() {
                       <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix Unitaire</th>
                       <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix Total</th>
                       <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facturé</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -327,13 +500,34 @@ export default function MilestonesDetails() {
                           />
                         </td>
                         <td className="px-3 py-2">
-                          <input
-                            type="text"
-                            value={milestone.description}
-                            onChange={(e) => updateMilestone(milestone.id, 'description', e.target.value)}
-                            className="w-full text-sm border border-gray-300 rounded px-2 py-1"
-                            style={{ minWidth: '300px' }}
-                          />
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              value={milestone.description}
+                              onChange={(e) => updateMilestone(milestone.id, 'description', e.target.value)}
+                              className="w-full text-sm border border-gray-300 rounded px-2 py-1"
+                              style={{ minWidth: '250px' }}
+                            />
+                            {/* Indicateur de projet */}
+                            {(() => {
+                              const projectId = getMilestoneProjectId(milestone.id)
+                              const projectExists = ['c228', 'c229', 'c230', 'c231'].includes(projectId)
+                              if (!projectExists) return null
+                              
+                              const projectColors = {
+                                c228: 'bg-blue-100 text-blue-800',
+                                c229: 'bg-green-100 text-green-800', 
+                                c230: 'bg-yellow-100 text-yellow-800',
+                                c231: 'bg-red-100 text-red-800'
+                              }
+                              
+                              return (
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${projectColors[projectId as keyof typeof projectColors]}`}>
+                                  {projectId.toUpperCase()}
+                                </span>
+                              )
+                            })()}
+                          </div>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <input
@@ -371,6 +565,15 @@ export default function MilestonesDetails() {
                             className="h-4 w-4 text-blue-600 border-gray-300 rounded"
                           />
                         </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-center">
+                          <button
+                            onClick={() => deleteMilestone(milestone.id)}
+                            className="inline-flex items-center px-2 py-1 text-xs font-medium text-red-600 bg-red-100 rounded hover:bg-red-200 transition-colors"
+                            title="Supprimer cette ligne"
+                          >
+                            ❌
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -380,6 +583,15 @@ export default function MilestonesDetails() {
                       <td className="px-3 py-3 text-sm text-blue-900">{formatCurrency(totalMilestones)}</td>
                       <td className="px-3 py-3 text-sm text-blue-900">{formatCurrency(totalMilestones)}</td>
                       <td className="px-3 py-3 text-sm text-blue-900">{milestones.filter(m => m.facture).length}</td>
+                      <td className="px-3 py-3 text-center">
+                        <button
+                          onClick={addMilestone}
+                          className="inline-flex items-center px-3 py-1 text-xs font-medium text-green-600 bg-green-100 rounded hover:bg-green-200 transition-colors"
+                          title="Ajouter une nouvelle ligne"
+                        >
+                          ➕ Ajouter
+                        </button>
+                      </td>
                     </tr>
                   </tfoot>
                 </table>

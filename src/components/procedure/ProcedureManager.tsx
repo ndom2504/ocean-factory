@@ -7,16 +7,27 @@ import CompilationManager from './CompilationManager'
 export default function ProcedureManager() {
   const [activeSubTab, setActiveSubTab] = useState<'montage' | 'compilation'>('montage')
 
+  // Fonction pour gérer la sauvegarde des réclamations
+  const handleSavePaymentClaim = (data: any) => {
+    console.log('Données de réclamation sauvegardées:', data)
+    // Ici vous pouvez ajouter la logique pour sauvegarder les données
+  }
+
+  // Fonction pour gérer la sauvegarde du formulaire PWGSC-1111
+  const handleSavePWGSC1111 = (data: any) => {
+    console.log('Données PWGSC-1111 sauvegardées:', data)
+    // Ici vous pouvez ajouter la logique pour sauvegarder les données
+  }
+
   return (
     <div className="h-full">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold mb-4">Gestion des Procédures</h2>
         <p className="text-gray-600">
-          Gérez le montage et la compilation des fichiers pour la facturation transmise au client
+          Gérez le montage, la compilation des fichiers et les réclamations de paiement
         </p>
       </div>
 
-      {/* Navigation des sous-onglets */}
       <div className="bg-white rounded-lg shadow-md mb-6">
         <div className="border-b">
           <nav className="flex space-x-8 px-6" aria-label="Sub-tabs">
@@ -43,7 +54,6 @@ export default function ProcedureManager() {
           </nav>
         </div>
 
-        {/* Contenu des sous-onglets */}
         <div className="p-6">
           {activeSubTab === 'montage' && <MontageManager />}
           {activeSubTab === 'compilation' && <CompilationManager />}

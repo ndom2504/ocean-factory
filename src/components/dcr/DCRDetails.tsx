@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { usePriceSync } from '@/contexts/PriceSyncContext'
+import { PriceSynchronizer, identifyProjectFromDescription, formatCAD, calculateTTC, TAX_RATES } from '@/utils/priceSync'
 
 interface DCRDetail {
   id: number

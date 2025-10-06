@@ -3944,6 +3944,29 @@ export default function CalculDetails() {
     setDCRFactures(prev => prev.filter(dcr => dcr.id !== id))
   }
 
+  // Fonctions de calcul des totaux pour les tableaux individuels
+  const calculateMilestoneTableTotals = () => {
+    const montantFacture = milestonesFactures.reduce((sum, m) => sum + m.montantFacture, 0)
+    const montantTTC = milestonesFactures.reduce((sum, m) => sum + m.montantTTC, 0)
+    const c228 = milestonesFactures.reduce((sum, m) => sum + m.c228, 0)
+    const c229 = milestonesFactures.reduce((sum, m) => sum + m.c229, 0)
+    const c230 = milestonesFactures.reduce((sum, m) => sum + m.c230, 0)
+    const c231 = milestonesFactures.reduce((sum, m) => sum + m.c231, 0)
+    
+    return { montantFacture, montantTTC, c228, c229, c230, c231 }
+  }
+
+  const calculateDCRTableTotals = () => {
+    const montantFacture = dcrFactures.reduce((sum, d) => sum + d.montant, 0)
+    const montantTTC = dcrFactures.reduce((sum, d) => sum + d.montantTTC, 0)
+    const c228 = dcrFactures.reduce((sum, d) => sum + d.c228, 0)
+    const c229 = dcrFactures.reduce((sum, d) => sum + d.c229, 0)
+    const c230 = dcrFactures.reduce((sum, d) => sum + d.c230, 0)
+    const c231 = dcrFactures.reduce((sum, d) => sum + d.c231, 0)
+    
+    return { montantFacture, montantTTC, c228, c229, c230, c231 }
+  }
+
   // Calculs pour le bilan
   const totalMilestonesFactures = milestonesFactures.reduce((sum, m) => sum + m.montantFacture, 0)
   const totalDCRFactures = dcrFactures.reduce((sum, d) => sum + d.montant, 0)
@@ -4234,6 +4257,39 @@ export default function CalculDetails() {
               ➕ Ajouter un Milestone
             </button>
           </div>
+
+          {/* Fenêtre de Totaux Milestones */}
+          <div className="bg-blue-50 border-t-2 border-blue-200 p-6">
+            <h3 className="text-lg font-bold text-blue-800 mb-4 flex items-center">
+              📊 Totaux du Registre Milestones
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-200">
+                <h4 className="text-sm font-medium text-gray-700">Montant Facturé</h4>
+                <p className="text-lg font-bold text-blue-600">{formatCurrency(calculateMilestoneTableTotals().montantFacture)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-200">
+                <h4 className="text-sm font-medium text-gray-700">Montant TTC</h4>
+                <p className="text-lg font-bold text-green-600">{formatCurrency(calculateMilestoneTableTotals().montantTTC)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-200">
+                <h4 className="text-sm font-medium text-gray-700">Total C-228</h4>
+                <p className="text-lg font-bold text-blue-700">{formatCurrency(calculateMilestoneTableTotals().c228)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-200">
+                <h4 className="text-sm font-medium text-gray-700">Total C-229</h4>
+                <p className="text-lg font-bold text-purple-600">{formatCurrency(calculateMilestoneTableTotals().c229)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-200">
+                <h4 className="text-sm font-medium text-gray-700">Total C-230</h4>
+                <p className="text-lg font-bold text-green-700">{formatCurrency(calculateMilestoneTableTotals().c230)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-200">
+                <h4 className="text-sm font-medium text-gray-700">Total C-231</h4>
+                <p className="text-lg font-bold text-orange-600">{formatCurrency(calculateMilestoneTableTotals().c231)}</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -4503,6 +4559,39 @@ export default function CalculDetails() {
             >
               ➕ Ajouter un DCR
             </button>
+          </div>
+
+          {/* Fenêtre de Totaux DCR */}
+          <div className="bg-orange-50 border-t-2 border-orange-200 p-6">
+            <h3 className="text-lg font-bold text-orange-800 mb-4 flex items-center">
+              📊 Totaux du Registre DCR
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-200">
+                <h4 className="text-sm font-medium text-gray-700">Montant Facturé</h4>
+                <p className="text-lg font-bold text-orange-600">{formatCurrency(calculateDCRTableTotals().montantFacture)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-200">
+                <h4 className="text-sm font-medium text-gray-700">Montant TTC</h4>
+                <p className="text-lg font-bold text-green-600">{formatCurrency(calculateDCRTableTotals().montantTTC)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-200">
+                <h4 className="text-sm font-medium text-gray-700">Total C-228</h4>
+                <p className="text-lg font-bold text-blue-700">{formatCurrency(calculateDCRTableTotals().c228)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-200">
+                <h4 className="text-sm font-medium text-gray-700">Total C-229</h4>
+                <p className="text-lg font-bold text-purple-600">{formatCurrency(calculateDCRTableTotals().c229)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-200">
+                <h4 className="text-sm font-medium text-gray-700">Total C-230</h4>
+                <p className="text-lg font-bold text-green-700">{formatCurrency(calculateDCRTableTotals().c230)}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-200">
+                <h4 className="text-sm font-medium text-gray-700">Total C-231</h4>
+                <p className="text-lg font-bold text-orange-700">{formatCurrency(calculateDCRTableTotals().c231)}</p>
+              </div>
+            </div>
           </div>
         </div>
       )}

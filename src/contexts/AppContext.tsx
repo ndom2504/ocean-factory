@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { DocumentsProvider } from './DocumentsContext'
 
 // Interfaces partagées
 export interface MilestoneFacturation {
@@ -154,7 +155,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeDocumentFromFolder,
       getDocumentsForItem
     }}>
-      {children}
+      <DocumentsProvider>
+        {children}
+      </DocumentsProvider>
     </AppContext.Provider>
   )
 }

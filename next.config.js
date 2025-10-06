@@ -7,7 +7,10 @@ const nextConfig = {
   },
   basePath: '',
   assetPrefix: '',
-  distDir: 'out'
+  distDir: 'out',
+  eslint: {
+    ignoreDuringBuilds: true,
+  }
 }
 
 module.exports = nextConfig

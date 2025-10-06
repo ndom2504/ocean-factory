@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { HomeIcon } from '@heroicons/react/24/outline'
 import MilestonesDetails from '@/components/milestones/MilestonesDetails'
@@ -9,7 +9,7 @@ import CalculDetails from '@/components/calcul/CalculDetails'
 import DocumentManager from '@/components/documents/DocumentManager'
 import ProcedureManager from '@/components/procedure/ProcedureManager'
 
-export default function Dashboard() {
+function DashboardContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('details')
@@ -47,6 +47,8 @@ export default function Dashboard() {
 
     window.addEventListener('openDocumentFolder', handleOpenDocumentFolder)
     return () => window.removeEventListener('openDocumentFolder', handleOpenDocumentFolder)
+  }, [])
+
   // Fonction pour sauvegarder la base de données
   const saveDatabase = () => {
     try {
@@ -282,5 +284,13 @@ export default function Dashboard() {
         <p>© 2024 Ocean Factory - Système de Facturation v1.0.0</p>
       </div>
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <DashboardContent />
+    </Suspense>
   )
 }

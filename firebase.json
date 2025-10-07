@@ -1,6 +1,7 @@
 {
   "hosting": {
-    "public": "public",
+    "site": "ocean-factory",
+    "public": "out",
     "ignore": [
       "firebase.json",
       "**/.*",
